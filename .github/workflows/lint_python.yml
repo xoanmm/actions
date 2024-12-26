@@ -1,0 +1,43 @@
+name: Lint Python code
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'Python version to be configured'
+        required: false
+        type: string
+        default: '3.13'
+
+jobs:
+
+  lint-python-code:
+    name: Lint Python Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Upgrade pip
+        run: pip3 install --upgrade pip
+
+      - name: Install necessary dependencies
+        run: pip3 install -r requirements.txt
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3
+        with:
+          extra_args: "-a -v"

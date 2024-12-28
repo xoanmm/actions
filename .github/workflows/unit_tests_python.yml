@@ -27,8 +27,8 @@ on:
 
 jobs:
 
-  lint-python-code:
-    name: Lint Python Code
+  unit-tests-python:
+    name: Unit Tests Python
     runs-on: ubuntu-latest
 
     steps:

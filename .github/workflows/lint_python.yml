@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: '3.13'
+      requirements-files:
+        description: 'Python requirements files with libraries to be installed'
+        required: false
+        type: string
+        default: 'requirements.txt'
 
 jobs:
 
@@ -27,7 +32,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -35,7 +40,10 @@ jobs:
         run: pip3 install --upgrade pip
 
       - name: Install necessary dependencies
-        run: pip3 install -r requirements.txt
+        run: |
+          for REQUIREMENTS_FILE in ${{ inputs.requirements-files }}; do
+            pip3 install -r "${REQUIREMENTS_FILE}"
+          done
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1

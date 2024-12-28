@@ -16,9 +16,6 @@ on:
 
 jobs:
   sonar-scan:
-    if: "${{ !contains(github.event.commits[0].message, 'chore(release):') }}"
-    needs:
-      - unit-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

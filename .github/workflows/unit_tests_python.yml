@@ -1,0 +1,64 @@
+name: Unit tests in python code
+
+on:
+  workflow_call:
+    inputs:
+      artifact-coverage-name:
+        description: 'Artifact coverage name for unit tests'
+        required: false
+        type: string
+        default: 'coverage'
+      artifact-coverage-path:
+        description: 'Artifact coverage path for unit tests'
+        required: false
+        type: string
+        default: 'coverage.xml'
+      python-version:
+        description: 'Python version to be configured'
+        required: false
+        type: string
+        default: '3.13'
+      unit-tests-command: 
+        description: 'Python unit tests command to be run'
+        required: false
+        type: string
+        default: '--cov --cov-report=xml'
+
+
+jobs:
+
+  lint-python-code:
+    name: Lint Python Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Upgrade pip
+        run: pip3 install --upgrade pip
+
+      - name: Install necessary dependencies
+        run: pip3 install -r requirements.txt
+
+      - name: Run unit-tests
+        run: pytest ${{ inputs.unit-tests-command }}
+
+      - name: Upload artifact for coverage
+        if: ${{ (inputs.artifact-coverage-name != '') && (inputs.artifact-coverage-path != '') }}
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: ${{ inputs.artifact-coverage-name }}
+          path: ${{ inputs.artifact-coverage-path }}

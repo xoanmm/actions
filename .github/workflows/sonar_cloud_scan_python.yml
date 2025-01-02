@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: 'coverage.xml'
+      sonar-qualitygate-wait:
+        description: 'Value for sonar.qualitygate.wait argument to be used by sonarqube-scan-action'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   sonar-scan:
@@ -41,6 +46,7 @@ jobs:
             -Dsonar.test.exclusions=tests/**
             -Dsonar.tests=tests/
             -Dsonar.verbose=true
+            -Dsonar.qualitygate.wait=${{ inputs.sonar-qualitygate-wait }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

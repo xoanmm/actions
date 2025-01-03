@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: 'coverage.xml'
+      python-version:
+        description: 'Python version to be configured'
+        required: false
+        type: string
+        default: '3.13'
       sonar-qualitygate-wait:
         description: 'Value for sonar.qualitygate.wait argument to be used by sonarqube-scan-action'
         required: false
@@ -34,7 +39,7 @@ jobs:
 
       - name: Get repository basename
         run: |
-            echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+          echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v4.2.1
@@ -47,6 +52,7 @@ jobs:
             -Dsonar.tests=tests/
             -Dsonar.verbose=true
             -Dsonar.qualitygate.wait=${{ inputs.sonar-qualitygate-wait }}
+            -Dsonar.python.version=${{ inputs.python-version }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

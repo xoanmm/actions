@@ -28,6 +28,11 @@ on:
         required: false
         type: boolean
         default: true
+      trivy-scan-output:
+        description: 'Trivy scan output format'
+        required: false
+        type: string
+        default: json
 
 jobs:
   validate-dockerfile:
@@ -83,8 +88,8 @@ jobs:
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
-        if: steps.filter.outputs.dockerfile == 'true' && "${{ inputs.dockerfile-filter }} == true"
+        if: steps.filter.outputs.dockerfile == 'true' && "${{ inputs.trivy-scan }} == true"
         with:
           image-ref: 'ghcr.io/${{ github.repository }}:${{ steps.build-push.outputs.imageid }}'
-          format: 'json'
+          format: ${{ inputs.trivy-scan-output }}
           exit-code: '1'

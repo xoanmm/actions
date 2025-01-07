@@ -75,3 +75,10 @@ jobs:
           context: ${{ inputs.dockerfile-context  }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'ghcr.io/${{ github.repository }}:${{ steps.build-push.outputs.imageid }}'
+          format: 'table'
+          exit-code: '1'

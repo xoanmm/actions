@@ -23,6 +23,11 @@ on:
         required: false
         type: boolean
         default: false
+      trivyignores:
+        description: 'comma-separated list of relative paths in repository to one or more .trivyignore files'
+        required: false
+        type: string
+        default: ''
       trivy-scan:
         description: 'Run trivy scan action'
         required: false
@@ -94,3 +99,4 @@ jobs:
           scan-ref: 'ghcr.io/${{ github.repository }}:${{ steps.build-push.outputs.imageid }}'
           format: ${{ inputs.trivy-scan-output }}
           exit-code: '1'
+          trivyignores: ${{ inputs.trivyignores }}

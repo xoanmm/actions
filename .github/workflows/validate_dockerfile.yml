@@ -46,6 +46,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check installed versions
+        run: pip3 freeze
+
       - uses: dorny/paths-filter@v3
         id: filter
         with:

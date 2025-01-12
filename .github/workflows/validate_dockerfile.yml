@@ -91,5 +91,6 @@ jobs:
         if: steps.filter.outputs.dockerfile == 'true' && "${{ inputs.trivy-scan }} == true"
         with:
           image-ref: 'ghcr.io/${{ github.repository }}:${{ steps.build-push.outputs.imageid }}'
+          scan-ref: 'ghcr.io/${{ github.repository }}:${{ steps.build-push.outputs.imageid }}'
           format: ${{ inputs.trivy-scan-output }}
           exit-code: '1'

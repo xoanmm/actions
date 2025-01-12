@@ -23,8 +23,8 @@ on:
         required: false
         type: boolean
         default: false
-      trivyignores:
-        description: 'comma-separated list of relative paths in repository to one or more .trivyignore files'
+      trivy-skip-dirs:
+        description: 'Comma separated list of directories where traversal is skipped'
         required: false
         type: string
         default: ''
@@ -102,4 +102,4 @@ jobs:
           scan-ref: 'ghcr.io/${{ github.repository }}:${{ steps.build-push.outputs.imageid }}'
           format: ${{ inputs.trivy-scan-output }}
           exit-code: '1'
-          trivyignores: ${{ inputs.trivyignores }}
+          skip-dirs: ${{ inputs.trivy-skip-dirs	}}

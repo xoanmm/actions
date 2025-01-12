@@ -109,7 +109,7 @@ jobs:
             type=semver,pattern={{version}},value=${{ env.VERSION }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6.10.0
+        uses: docker/build-push-action@v6.11.0
         id: build-push
         if: ${{ env.VERSION != '' }}
         with:

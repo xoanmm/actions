@@ -66,7 +66,7 @@ jobs:
 
       - name: Upload artifact for coverage
         if: ${{ (inputs.artifact-coverage-name != '') && (inputs.artifact-coverage-path != '') }}
-        uses: actions/upload-artifact@v4.6.0
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: ${{ inputs.artifact-coverage-name }}
           path: ${{ inputs.artifact-coverage-path }}

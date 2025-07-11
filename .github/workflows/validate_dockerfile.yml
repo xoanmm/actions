@@ -62,7 +62,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.filter.outputs.dockerfile == 'true'
-        uses: docker/setup-buildx-action@v3.8.0
+        uses: docker/setup-buildx-action@v3.11.1
         with:
           platforms: linux/amd64,linux/arm64
 

@@ -67,7 +67,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Docker Login in GHCR
-        uses: docker/login-action@v3.4.0
+        uses: docker/login-action@v3.5.0
         if: steps.filter.outputs.dockerfile == 'true'
         id: configure-login-ghcr
         with:

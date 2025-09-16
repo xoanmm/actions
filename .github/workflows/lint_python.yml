@@ -13,13 +13,56 @@ on:
         required: false
         type: string
         default: 'requirements.txt'
+      working-directory:
+        description: 'Path to the working directory'
+        required: false
+        type: string
+        default: ''
 
 jobs:
 
   lint-python-code:
+    if: ${{ inputs.working-directory == '' }}
     name: Lint Python Code
     runs-on: ubuntu-24.04
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Upgrade pip
+        run: pip3 install --upgrade pip
+
+      - name: Install necessary dependencies
+        run: |
+          for REQUIREMENTS_FILE in ${{ inputs.requirements-files }}; do
+            pip3 install -r "${REQUIREMENTS_FILE}"
+          done
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: "-a -v"
+  
+  lint-python-code-working-dir:
+    if: ${{ inputs.working-directory != '' }}
+    name: Lint Python Code
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

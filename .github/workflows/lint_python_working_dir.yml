@@ -13,19 +13,25 @@ on:
         required: false
         type: string
         default: 'requirements.txt'
+      working-directory:
+        description: 'Path to the working directory'
+        required: true
+        type: string
 
 jobs:
 
   lint-python-code:
     name: Lint Python Code
     runs-on: ubuntu-24.04
-
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
 

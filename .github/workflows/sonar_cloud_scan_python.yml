@@ -23,6 +23,11 @@ on:
         required: false
         type: boolean
         default: false
+      project-base-dir:
+        description: 'Project base directory where tests are going to be search'
+        required: false
+        type: string
+        default: '.'
 
 jobs:
   sonar-scan:
@@ -46,6 +51,7 @@ jobs:
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v5.3.1
         with:
+          projectBaseDir: ${{ inputs.project-base-dir }}
           args: >
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ env.REPO_NAME }}
             -Dsonar.organization=${{ github.repository_owner }}

@@ -57,16 +57,16 @@ jobs:
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v6.0.0
         with:
-          projectBaseDir: ${{ inputs.project-base-dir }}
           args: >
-            -Dsonar.projectKey=${{ github.repository_owner }}_${{ env.REPO_NAME }}
-            -Dsonar.organization=${{ github.repository_owner }}
-            -Dsonar.python.coverage.reportPaths=${{ inputs.artifact-coverage-path }}
-            -Dsonar.test.exclusions=tests/**
-            -Dsonar.tests=tests/
-            -Dsonar.verbose=true
-            -Dsonar.qualitygate.wait=${{ inputs.sonar-qualitygate-wait }}
-            -Dsonar.python.version=${{ inputs.python-version }}
+            "-Dsonar.projectBaseDir=${{ inputs.project-base-dir }}"
+            "-Dsonar.projectKey=${{ github.repository_owner }}_${{ env.REPO_NAME }}"
+            "-Dsonar.organization=${{ github.repository_owner }}"
+            "-Dsonar.python.coverage.reportPaths=${{ inputs.artifact-coverage-path }}"
+            "-Dsonar.test.exclusions=tests/**"
+            "-Dsonar.tests=tests/"
+            "-Dsonar.verbose=true"
+            "-Dsonar.qualitygate.wait=${{ inputs.sonar-qualitygate-wait }}"
+            "-Dsonar.python.version=${{ inputs.python-version }}"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: 'coverage'
+      artifact-coverate-directory:
+        description: 'Artifact coverage directory with results of tests'
+        required: true
+        type: string
+        default: '.'
       artifact-coverage-path:
         description: 'Artifact coverage path for unit tests'
         required: false
@@ -43,6 +48,7 @@ jobs:
         uses: actions/download-artifact@v5.0.0
         with:
           name: ${{ inputs.artifact-coverage-name }}
+          path: ${{ inputs.artifact-coverate-directory }}
 
       - name: Get repository basename
         run: |

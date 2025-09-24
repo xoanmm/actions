@@ -59,6 +59,7 @@ jobs:
         with:
           args: >
             "-Dsonar.projectBaseDir=${{ inputs.project-base-dir }}"
+            "-Dsonar.sources==${{ inputs.project-base-dir }}"
             "-Dsonar.projectKey=${{ github.repository_owner }}_${{ env.REPO_NAME }}"
             "-Dsonar.organization=${{ github.repository_owner }}"
             "-Dsonar.python.coverage.reportPaths=${{ inputs.artifact-coverage-path }}"

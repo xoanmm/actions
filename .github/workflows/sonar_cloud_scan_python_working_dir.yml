@@ -8,11 +8,6 @@ on:
         required: false
         type: string
         default: 'coverage'
-      artifact-coverage-directory:
-        description: 'Artifact coverage directory with results of tests'
-        required: true
-        type: string
-        default: '.'
       artifact-coverage-path:
         description: 'Artifact coverage path for unit tests'
         required: false

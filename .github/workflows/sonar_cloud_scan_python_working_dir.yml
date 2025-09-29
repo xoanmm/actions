@@ -1,4 +1,4 @@
-name: Sonar Cloud Scan for Python Code
+name: Sonar Cloud Scan for Python Code with working directory
 
 on:
   workflow_call:
@@ -28,16 +28,18 @@ on:
         required: false
         type: boolean
         default: false
-      project-base-dir:
-        description: 'Project base directory where tests are going to be search'
-        required: false
+      working-directory:
+        description: 'Path to the working directory'
+        required: true
         type: string
-        default: '.'
 
 jobs:
   sonar-scan:
     runs-on: ubuntu-24.04
     name: Sonar Cloud Scan
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -48,7 +50,6 @@ jobs:
         uses: actions/download-artifact@v5.0.0
         with:
           name: ${{ inputs.artifact-coverage-name }}
-          path: ${{ inputs.artifact-coverage-directory }}
 
       - name: Get repository basename
         run: |
@@ -58,7 +59,6 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@v6.0.0
         with:
           args: >
-            "-Dsonar.projectBaseDir=${{ inputs.project-base-dir }}"
             "-Dsonar.projectKey=${{ github.repository_owner }}_${{ env.REPO_NAME }}"
             "-Dsonar.organization=${{ github.repository_owner }}"
             "-Dsonar.python.coverage.reportPaths=${{ inputs.artifact-coverage-path }}"

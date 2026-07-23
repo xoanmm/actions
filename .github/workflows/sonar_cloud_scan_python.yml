@@ -10,7 +10,7 @@ on:
         default: 'coverage'
       artifact-coverage-directory:
         description: 'Artifact coverage directory with results of tests'
-        required: true
+        required: false
         type: string
         default: '.'
       artifact-coverage-path:

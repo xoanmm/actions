@@ -12,7 +12,93 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Release lesson ${{ github.ref_name }}
+        with:
+          fetch-depth: 0
+
+      - name: Extract lesson info from tag
+        id: lesson
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          LESSON_NUM=$(echo "$TAG" | grep -oP '(?<=lesson)\d+(?=v)')
+          echo "lesson_num=$LESSON_NUM" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Find previous tag for this lesson
+        id: prev
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          N="${{ steps.lesson.outputs.lesson_num }}"
+          PREV=$(git tag --list "lesson${N}v*" --sort=-version:refname \
+            | grep -v "^${TAG}$" | head -1)
+          if [ -z "$PREV" ] && [ "$N" -gt 1 ]; then
+            PREV_N=$((N - 1))
+            PREV=$(git tag --list "lesson${PREV_N}v*" --sort=-version:refname | head -1)
+          fi
+          echo "prev_tag=$PREV" >> "$GITHUB_OUTPUT"
+          echo "Comparing from: ${PREV:-<initial commit>}"
+
+      - name: Generate release notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PREV="${{ steps.prev.outputs.prev_tag }}"
+          N="${{ steps.lesson.outputs.lesson_num }}"
+          {
+            if [ -n "$PREV" ]; then
+              echo "## Changes since \`${PREV}\`"
+            else
+              echo "## Lesson ${N} — initial release"
+            fi
+            echo ""
+            echo "### Commits"
+            if [ -n "$PREV" ]; then
+              git log "${PREV}..HEAD" --oneline --no-merges | head -50 | sed 's/^/- /'
+            else
+              git log HEAD --oneline --no-merges | head -50 | sed 's/^/- /'
+            fi
+            echo ""
+            echo "### Files changed"
+            if [ -n "$PREV" ]; then
+              git diff --name-only "${PREV}..HEAD" | sed "s|^|- \`|" | sed "s|$|\`|"
+            else
+              git ls-tree -r --name-only HEAD \
+                | grep -E "^(labs/${N}[^0-9/]|labs/${N}/|\.github)" \
+                | sed "s|^|- \`|" | sed "s|$|\`|"
+            fi
+          } > /tmp/release_notes.md
+          cat /tmp/release_notes.md
+
+      - name: Package lesson directory
+        run: |
+          N="${{ steps.lesson.outputs.lesson_num }}"
+          TAG="${{ steps.lesson.outputs.tag }}"
+          case "$N" in
+            1) DIRS="labs/1-simple-fast-api labs/1.1-infrastructure-testing" ;;
+            2) DIRS="labs/2.1-deployment-strategies labs/2.2-multi-semantic-release" ;;
+            3) DIRS="labs/3-monitoring-autoscaling" ;;
+            4) DIRS="labs/4-rollback-automation" ;;
+            5) DIRS="labs/5-chaos-engineering" ;;
+            *) DIRS="." ;;
+          esac
+          zip -r "${TAG}.zip" $DIRS
+          echo "Packaged: ${TAG}.zip ($(du -sh "${TAG}.zip" | cut -f1))"
+
+      - name: Generate diff patch
+        run: |
+          TAG="${{ steps.lesson.outputs.tag }}"
+          PREV="${{ steps.prev.outputs.prev_tag }}"
+          if [ -n "$PREV" ]; then
+            git diff "${PREV}..HEAD" > "${TAG}.patch"
+          else
+            git show HEAD --format="" > "${TAG}.patch"
+          fi
+          echo "Patch: $(wc -l < "${TAG}.patch") lines"
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           token: ${{ github.token }}
+          body_path: /tmp/release_notes.md
+          files: |
+            ${{ steps.lesson.outputs.tag }}.zip
+            ${{ steps.lesson.outputs.tag }}.patch
+          make_latest: false

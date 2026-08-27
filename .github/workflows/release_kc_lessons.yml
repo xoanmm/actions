@@ -15,25 +15,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract lesson info from tag
-        id: lesson
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          LESSON_NUM=$(echo "$TAG" | grep -oP '(?<=lesson)\d+(?=v)')
-          echo "lesson_num=$LESSON_NUM" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-
-      - name: Find previous tag for this lesson
+      - name: Find previous tag
         id: prev
         run: |
           TAG="${GITHUB_REF_NAME}"
-          N="${{ steps.lesson.outputs.lesson_num }}"
-          PREV=$(git tag --list "lesson${N}v*" --sort=-version:refname \
-            | grep -v "^${TAG}$" | head -1)
-          if [ -z "$PREV" ] && [ "$N" -gt 1 ]; then
-            PREV_N=$((N - 1))
-            PREV=$(git tag --list "lesson${PREV_N}v*" --sort=-version:refname | head -1)
-          fi
+          PREV=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
           echo "prev_tag=$PREV" >> "$GITHUB_OUTPUT"
           echo "Comparing from: ${PREV:-<initial commit>}"
 
@@ -41,55 +27,50 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           PREV="${{ steps.prev.outputs.prev_tag }}"
-          N="${{ steps.lesson.outputs.lesson_num }}"
           {
             if [ -n "$PREV" ]; then
               echo "## Changes since \`${PREV}\`"
             else
-              echo "## Lesson ${N} — initial release"
+              echo "## ${TAG} — initial release"
             fi
             echo ""
             echo "### Commits"
             if [ -n "$PREV" ]; then
-              git log "${PREV}..HEAD" --oneline --no-merges | head -50 | sed 's/^/- /'
+              git log "${PREV}..HEAD" --oneline --no-merges | sed 's/^/- /'
             else
-              git log HEAD --oneline --no-merges | head -50 | sed 's/^/- /'
+              git log HEAD --oneline --no-merges | sed 's/^/- /'
             fi
             echo ""
-            echo "### Files changed"
+            echo "### Files"
             if [ -n "$PREV" ]; then
               git diff --name-only "${PREV}..HEAD" | sed "s|^|- \`|" | sed "s|$|\`|"
             else
-              git ls-tree -r --name-only HEAD \
-                | grep -E "^(labs/${N}[^0-9/]|labs/${N}/|\.github)" \
+              git diff --name-only $(git rev-list --max-parents=0 HEAD)..HEAD \
                 | sed "s|^|- \`|" | sed "s|$|\`|"
             fi
           } > /tmp/release_notes.md
           cat /tmp/release_notes.md
 
-      - name: Package lesson directory
+      - name: Package changed files
         run: |
-          N="${{ steps.lesson.outputs.lesson_num }}"
-          TAG="${{ steps.lesson.outputs.tag }}"
-          case "$N" in
-            1) DIRS="labs/1-simple-fast-api labs/1.1-infrastructure-testing" ;;
-            2) DIRS="labs/2.1-deployment-strategies labs/2.2-multi-semantic-release" ;;
-            3) DIRS="labs/3-monitoring-autoscaling" ;;
-            4) DIRS="labs/4-rollback-automation" ;;
-            5) DIRS="labs/5-chaos-engineering" ;;
-            *) DIRS="." ;;
-          esac
-          zip -r "${TAG}.zip" $DIRS
+          TAG="${GITHUB_REF_NAME}"
+          PREV="${{ steps.prev.outputs.prev_tag }}"
+          if [ -n "$PREV" ]; then
+            CHANGED=$(git diff --name-only "${PREV}..HEAD")
+          else
+            CHANGED=$(git diff --name-only $(git rev-list --max-parents=0 HEAD)..HEAD)
+          fi
+          echo "$CHANGED" | zip -r "${TAG}.zip" -@
           echo "Packaged: ${TAG}.zip ($(du -sh "${TAG}.zip" | cut -f1))"
 
       - name: Generate diff patch
         run: |
-          TAG="${{ steps.lesson.outputs.tag }}"
+          TAG="${GITHUB_REF_NAME}"
           PREV="${{ steps.prev.outputs.prev_tag }}"
           if [ -n "$PREV" ]; then
             git diff "${PREV}..HEAD" > "${TAG}.patch"
           else
-            git show HEAD --format="" > "${TAG}.patch"
+            git diff $(git rev-list --max-parents=0 HEAD)..HEAD > "${TAG}.patch"
           fi
           echo "Patch: $(wc -l < "${TAG}.patch") lines"
 
@@ -99,6 +80,6 @@ jobs:
           token: ${{ github.token }}
           body_path: /tmp/release_notes.md
           files: |
-            ${{ steps.lesson.outputs.tag }}.zip
-            ${{ steps.lesson.outputs.tag }}.patch
+            ${{ github.ref_name }}.zip
+            ${{ github.ref_name }}.patch
           make_latest: false

@@ -63,23 +63,10 @@ jobs:
           echo "$CHANGED" | zip -r "${TAG}.zip" -@
           echo "Packaged: ${TAG}.zip ($(du -sh "${TAG}.zip" | cut -f1))"
 
-      - name: Generate diff patch
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          PREV="${{ steps.prev.outputs.prev_tag }}"
-          if [ -n "$PREV" ]; then
-            git diff "${PREV}..HEAD" > "${TAG}.patch"
-          else
-            git diff $(git rev-list --max-parents=0 HEAD)..HEAD > "${TAG}.patch"
-          fi
-          echo "Patch: $(wc -l < "${TAG}.patch") lines"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           token: ${{ github.token }}
           body_path: /tmp/release_notes.md
-          files: |
-            ${{ github.ref_name }}.zip
-            ${{ github.ref_name }}.patch
+          files: ${{ github.ref_name }}.zip
           make_latest: false

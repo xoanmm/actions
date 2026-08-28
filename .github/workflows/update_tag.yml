@@ -15,6 +15,7 @@ jobs:
       - name: Create or update tag
         uses: actions/github-script@v9
         with:
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const version = "${{ github.event.release.tag_name }}";
             const major = version.split(".")[0];
@@ -25,6 +26,7 @@ jobs:
                 repo: context.repo.repo,
                 ref: 'tags/' + major,
                 sha: context.sha,
+                force: true,
               })
             } catch {
               await github.rest.git.createRef({
@@ -41,6 +43,7 @@ jobs:
                 repo: context.repo.repo,
                 ref: 'tags/' + minor,
                 sha: context.sha,
+                force: true,
               })
             } catch {
               await github.rest.git.createRef({

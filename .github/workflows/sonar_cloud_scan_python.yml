@@ -36,7 +36,7 @@ on:
 
 jobs:
   sonar-scan:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     name: Sonar Cloud Scan
     steps:
       - name: Checkout code
